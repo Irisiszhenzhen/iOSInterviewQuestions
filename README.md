@@ -1,5 +1,5 @@
 # iOSInterviewQuestions
-![](http://image.jobcn.com/images/hr/2014/3/208240_1.jpg)
+
 
 面试题集锦，带答案
 
@@ -13,4 +13,4 @@
 - 如果此项目很荣幸的能帮助到您，请star支持，谢谢！
 
 
-
+![](http://image.jobcn.com/images/hr/2014/3/208240_1.jpg)
