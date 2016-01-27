@@ -1,6 +1,7 @@
 # iOS基础面试题
 
 1.#import 跟#include、@class有什么区别？＃import<> 跟 #import”"又什么区别？ 
+
 ```
 #import 和#include都是在当前文件引入某个文件的内容，#import能防止同一个文件被引用多次
 @class 仅仅声明一个类名，并不包含类的完整声明，@class还能解决循环包换的问题
@@ -12,7 +13,7 @@
 1.readwrite：同时生成get方法和set方法的声明和实现  
 2.readonly：只生成get方法的声明和实现
 3.assign：set方法的实现是直接赋值，用于基本数据类型
-4.set方法的实现是release旧值，retain新值，用于OC对象类型
+4.retain:set方法的实现是release旧值，retain新值，用于OC对象类型
 5.copy：set方法的实现是release旧值，copy新值，用于NSString、block等类型
 6.nonatomic：非原子性，set方法的实现不加锁（比atomic性能高）
 ```
@@ -107,6 +108,7 @@ immutable是不可变类型，比如NSArray，固定的存储空间，不能添�
 ```
 单例：保证程序运行过程中，永远只有一个对象实例
 目的是：全局共享一份资源、节省不必要的内存开销
+常见单例：UIApplication、NSUserDefaults、NSNotificationCenter、NSFileManager、NSBundle等
 ```
 15.什么时候使用NSMutableArray,什么时候使用NSArray？
 
@@ -138,3 +140,44 @@ Objective C中没有private，public类似的关键字来控制类的权限，�
 栈空间的内存由系统自动分配，一般存放局部变量等，不需要手动管理内存
 ```
 20.@property中有哪些属性关键字？
+
+```
+1.readwrite（默认）：同时生成get方法和set方法的声明和实现  
+2.readonly：只生成get方法的声明和实现
+3.assign（默认）：set方法的实现是直接赋值，用于基本数据类型
+4.retain:set方法的实现是release旧值，retain新值，用于OC对象类型
+5.copy：set方法的实现是release旧值，copy新值，用于NSString、block等类型
+6.nonatomic：非原子性，set方法的实现不加锁（比atomic性能高）
+7.atomic（默认）：原子性，会在set方法加上读写锁
+8.weak：弱指针类型，一般用于UI控件、id类型
+9、strong (就是retain)：强指针类型   一般用于OC对象类型，除 (UI控件、代理类型、字符串对象)
+```
+21.OC有多继承吗？没有的话用什么代替？
+
+```
+OC是单继承，没有多继承，有时可以使用分类和协议来代替多继承。
+```
+22.关键字const什么含义？
+
+```
+const int a;
+int const a;
+const int *a;
+int const *a;
+int * const a;
+int const * const a;
+```
+```
+1> 前两个的作用是一样：a 是一个常整型数
+2> 第三、四个意味着 a 是一个指向常整型数的指针(整型数是不可修改的，但指针可以)
+3> 第五个的意思：a 是一个指向整型数的常指针(指针指向的整型数是可以修改的，但指针是不可修改的)
+4> 最后一个意味着：a 是一个指向常整型数的常指针(指针指向的整型数是不可修改的，同时指针也是不可修改的)
+```
+23.static的作用？
+
+```
+1.static修饰的函数是一个内部函数，只能在本文件中调用，其他文件不能调用
+2. static修饰的全部变量是一个内部变量，只能在本文件中使用，其他文件不能使用
+3. static修饰的局部变量只会初始化一次，并且在程序退出时才会回收内存
+```
+
