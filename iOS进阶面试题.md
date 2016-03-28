@@ -125,3 +125,82 @@ UITableViewCell的重用原理：
 还有一个非常重要的问题：有时候需要自定义UITableViewCell（用一个子类继承UITableViewCell），而且每一行用的不一定是同一种UITableViewCell（如短信聊天布局），所以一个UITableView可能拥有不同类型的UITableViewCell，对象池中也会有很多不同类型的UITableViewCell，时可能会得到错误类型的UITableViewCell那么UITableView在重用UITableViewCell。解决方案：UITableViewCell有个NSString *reuseIdentifier属性，可以在初始化UITableViewCell的时候传入一个特定的字符串标识来设置reuseIdentifier（一般用UITableViewCell的类名）。当UITableView要求dataSource返回UITableViewCell时，先通过一个字符串标识到对象池中查找对应类型的UITableViewCell对象，如果有，就重用，如果没有，就传入这个字符串标识来初始化一个UITableViewCell对象。
 ```
 
+12、UIView动画与核心动画的区别？
+
+```
+UIView动画与核心动画的区别：
+1、核心动画只作用在CALayer上面，UIView是没有办法使用核心动画的
+2、核心动画看到的都是假象，并没有修改UIView的真实位置
+
+什么时候使用UIView动画？
+需要与用户进行交互的时候使用UIView动画，如果不需要与用户进行交互，两者都可以使用。
+
+什么时候使用核心动画？
+1、根据路径做动画，要使用核心动画（帧动画）
+2、做转场动画时，也要使用核心动画
+```
+13、自定义视图中重写layoutsubView需要调用父类的layoutsubView吗，为什么？
+
+```
+如果重写的控件是UIView不调用父类的layoutsubView也没关系，里面没有任何子控件，所以不会做什么事情。一般系统自带视图中有子控件的都会重写layoutSubviews方法，因此我们自定义系统自带控件并且重写layoutSubviews必须调用[super layoutSubviews],先布局系统自带子控件的位置和尺寸，才设置我们自己的控件位置和尺寸。否则会发现想用系统自带视图的子控件的时候，会出现意想不到的效果。
+```
+14、应用程序的启动流程？
+
+```
+1.执行Main
+2.执行UIApplicationMain函数.
+3.创建UIApplication对象,并设置UIApplicationMain对象的代理.
+  UIApplication的第三个参数就是UIApplication的名称,如果指定为nil,它会默认为UIApplication.
+  UIApplication的第四个参数为UIApplication的代理.
+4.开启一个主运行循环.保证应用程序不退出.
+5.加载info.plist.加载配置文件.判断一下info.plist文件当中有没有Main storyboard file base name里面有没有指定storyboard文件,如果有就去加载info.plist文件,如果没有,那么应用程序加载完毕.
+```
+15、NSString 的时候用copy和strong的区别？
+
+```
+OC中NSString为不可变字符串的时候，用copy和strong都是只分配一次内存，但是如果用copy的时候，需要先判断字符串是否是不可变字符串，如果是不可变字符串，就不再分配空间，如果是可变字符串才分配空间。如果程序中用到NSString的地方特别多，每一次都要先进行判断就会耗费性能，影响用户体验，用strong就不会再进行判断，所以，不可变字符串可以直接用strong。
+```
+16、事件传递与响应的完整过程?
+
+```
+在产生一个事件时,系统会将该事件加入到一个由UIApplication管理的事件队列中,
+UIApplication会从事件队列中取出最前面的事件,将它传递给先发送事件给应用程序的主窗口.
+主窗口会调用hitTest方法寻找最适合的视图控件,找到后就会调用视图控件的touches方法来做具体的事情.
+当调用touches方法,它的默认做法, 就会将事件顺着响应者链条往上传递，
+传递给上一个响应者,接着就会调用上一个响应者的touches方法
+```
+17.ASIHttpRequest、AFNetWorking之间的区别?
+
+```
+- ASIHttpRequest功能强大，主要是在MRC下实现的，是对系统CFNetwork API进行了封装，支持HTTP协议的CFHTTP，配置比较复杂，并且ASIHttpRequest框架默认不会帮你监听网络改变，如果需要让ASIHttpRequest帮你监听网络状态改变，并且手动开始这个功能。
+
+- AFNetWorking构建于NSURLConnection、NSOperation以及其他熟悉的Foundation技术之上。拥有良好的架构，丰富的API及模块构建方式，使用起来非常轻松。它基于NSOperation封装的，AFURLConnectionOperation子类。
+
+- ASIHttpRequest是直接操作对象ASIHttpRequest是一个实现了NSCoding协议的NSOperation子类；AFNetWorking直接操作对象的AFHttpClient，是一个实现NSCoding和NSCopying协议的NSObject子类。
+
+- 同步请求：ASIHttpRequest直接通过调用一个startSynchronous方法；AFNetWorking默认没有封装同步请求，如果开发者需要使用同步请求，则需要重写getPath:paraments:success:failures方法，对于AFHttpRequestOperation进行同步处理。
+
+- 性能对比：AFNetworking请求优于ASIHttpRequest；
+```
+
+18.如何进行真机调试？
+
+```
+1.首先需要用钥匙串创建一个钥匙（key）；
+2.将钥匙串上传到官网，获取iOS Development证书；
+3.创建App ID即我们应用程序中的Boundle ID；
+4.添加Device ID即UDID；
+5.通过勾选前面所创建的证书：App ID、Device ID；
+6.生成mobileprovision文件；
+7.先决条件：申请开发者账号 99美刀
+```
+
+19.APP发布的上架流程?
+
+```
+1.登录应用发布网站添加应用信息；
+2.下载安装发布证书；
+3.选择发布证书，使用Archive编译发布包，用Xcode将代码（发布包）上传到服务器；
+4.等待审核通过;
+5.生成IPA：菜单栏->Product->Archive.
+```
