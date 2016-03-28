@@ -236,5 +236,55 @@ for (int i = 0; i < 10; ++i)
 
 - Storyboard：需求变动时，需要修改storyboard上对应的界面的约束，与XIB一样可能要重新添加约束，或者添加约束会造成大量的冲突，尤其是多团队开发。对于复杂逻辑控制不同显示内容时，比较困难。当多人团队或者多团队开发时，大家会同时修改一个storyboard，导致大量冲突，解决起来相当困难。
 ```
+30.@synthesize和@dynamic分别有什么作用？
+
+```
+- @property有两个对应的词，一个是 @synthesize，一个是 @dynamic。如果 @synthesize和 @dynamic都没写，那么默认的就是@syntheszie var = _var;
+- @synthesize 的语义是如果你没有手动实现 setter 方法和 getter 方法，那么编译器会自动为你加上这两个方法。
+- @dynamic 告诉编译器：属性的 setter 与 getter 方法由用户自己实现，不自动生成。（当然对于 readonly 的属性只需提供 getter 即可）。假如一个属性被声明为 @dynamic var，然后你没有提供 @setter方法和 @getter 方法，编译的时候没问题，但是当程序运行到 instance.var = someVar，由于缺 setter 方法会导致程序崩溃；或者当运行到 someVar = var 时，由于缺 getter 方法同样会导致崩溃。编译时没问题，运行时才执行相应的方法，这就是所谓的动态绑定。
+```
+
+31.objc中的类方法和实例方法有什么本质区别和联系？
+
+```
+类方法:
+- 类方法是属于类对象的
+- 类方法只能通过类对象调用
+- 类方法中的self是类对象
+- 类方法可以调用其他的类方法
+- 类方法中不能访问成员变量
+- 类方法中不能直接调用对象方法
+
+实例方法：
+
+- 实例方法是属于实例对象的
+- 实例方法只能通过实例对象调用
+- 实例方法中的self是实例对象
+- 实例方法中可以访问成员变量
+- 实例方法中直接调用实例方法
+- 实例方法中也可以调用类方法(通过类名)
+```
+
+32.Objective-C 中是否支持垃圾回收机制？
+
+```
+- OC是支持垃圾回收机制的(Garbage collection简称GC),但是apple的移动终端中,是不支持GC的,Mac桌面系统开发中是支持的.
+
+- 移动终端开发是支持ARC（Automatic Reference Counting的简称）,ARC是在IOS5之后推出的新技术,它与GC的机制是不同的。我们在编写代码时, 不需要向对象发送release或者autorelease方法,也不可以调用delloc方法,编译器会在合适的位置自动给用户生成release消息(autorelease),ARC 的特点是自动引用技术简化了内存管理的难度.
+```
+33.在 Objective-C 中如何实现 KVO?
+
+```
+- 注册观察者(注意：观察者和被观察者不会被保留也不会被释放)
+- (void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(void *)context;
+
+- 接收变更通知
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context;
+
+- 移除对象的观察者身份
+- (void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath;
+
+- KVO中谁要监听谁注册，然后对响应进行处理，使得观察者与被观察者完全解耦。KVO只检测类中的属性，并且属性名都是通过NSString来查找，编译器不会检错和补全，全部取决于自己。
+```
 
 

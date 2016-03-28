@@ -204,3 +204,114 @@ UIApplication会从事件队列中取出最前面的事件,将它传递给先发
 4.等待审核通过;
 5.生成IPA：菜单栏->Product->Archive.
 ```
+
+20.能否向编译后得到的类中增加实例变量？能否向运行时创建的类中添加实例变量？为什么？
+
+```
+- 不能向编译后得到的类中增加实例变量；
+- 能向运行时创建的类中添加实例变量；
+
+解释如下：
+因为编译后的类已经注册在 runtime 中，类结构体中的 objc_ivar_list 实例变量的链表 和 instance_size 实例变量的内存大小已经确定，同时runtime 会调用 class_setIvarLayout 或 class_setWeakIvarLayout 来处理 strong weak 引用。所以不能向存在的类中添加实例变量；
+运行时创建的类是可以添加实例变量，调用 class_addIvar 函数。但是得在调用 objc_allocateClassPair 之后，objc_registerClassPair 之前，原因同上。
+
+```
+21.以+ scheduledTimerWithTimeInterval...的方式触发的timer，在滑动页面上的列表时，timer会暂定回调，为什么？如何解决？
+
+```
+RunLoop只能运行在一种mode下，如果要换mode，当前的loop也需要停下重启成新的。利用这个机制，ScrollView滚动过程中NSDefaultRunLoopMode（kCFRunLoopDefaultMode）的mode会切换到UITrackingRunLoopMode来保证ScrollView的流畅滑动：只能在NSDefaultRunLoopMode模式下处理的事件会影响ScrollView的滑动。
+
+如果我们把一个NSTimer对象以NSDefaultRunLoopMode（kCFRunLoopDefaultMode）添加到主运行循环中的时候, ScrollView滚动过程中会因为mode的切换，而导致NSTimer将不再被调度。
+
+同时因为mode还是可定制的，所以：
+
+Timer计时会被scrollView的滑动影响的问题可以通过将timer添加到NSRunLoopCommonModes（kCFRunLoopCommonModes）来解决。代码如下：
+//将timer添加到NSDefaultRunLoopMode中
+ [NSTimer scheduledTimerWithTimeInterval: target: selector:@selector(timerTick:) userInfo: repeats:];
+  //然后再添加到NSRunLoopCommonModes里
+   NSTimer *timer = [NSTimer timerWithTimeInterval: target: selector:@selector(timerTick:) userInfo: repeats:];
+    [[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+```
+
+22.runloop和线程有什么关系？
+
+```
+总的说来，Run loop，正如其名，loop表示某种循环，和run放在一起就表示一直在运行着的循环。实际上，run loop和线程是紧密相连的，可以这样说run loop是为了线程而生，没有线程，它就没有存在的必要。Run loops是线程的基础架构部分， Cocoa 和 CoreFundation 都提供了 run loop 对象方便配置和管理线程的 run loop （以下都以 Cocoa 为例）。每个线程，包括程序的主线程（ main thread ）都有与之相应的 run loop 对象。
+
+runloop 和线程的关系：
+- 主线程的run loop默认是启动的。
+iOS的应用程序里面，程序启动后会有一个如下的main()函数
+( argc,  * argv[]) {
+@autoreleasepool {
+    return UIApplicationMain(argc, argv, , NSStringFromClass([AppDelegate class]));
+}
+}
+重点是UIApplicationMain()函数，这个方法会为main thread设置一个NSRunLoop对象，这就解释了：为什么我们的应用可以在无人操作的时候休息，需要让它干活的时候又能立马响应。
+
+- 对其它线程来说，run loop默认是没有启动的，如果你需要更多的线程交互则可以手动配置和启动，如果线程只是去执行一个长时间的已确定的任务则不需要。
+
+- 在任何一个 Cocoa 程序的线程中，都可以通过以下代码来获取到当前线程的 run loop 。
+NSRunLoop *runloop = [NSRunLoop currentRunLoop];
+```
+
+23.如何用GCD同步若干个异步调用？（如根据若干个url异步加载多张图片，然后在都下载完成后合成一张整图）
+
+```
+使用Dispatch Group追加block到Global Group Queue,这些block如果全部执行完毕，就会执行Main Dispatch Queue中的结束处理的block。
+
+dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, );
+dispatch_group_t group = dispatch_group_create();
+dispatch_group_async(group, queue, ^{ /*加载图片1 */ });
+dispatch_group_async(group, queue, ^{ /*加载图片2 */ });
+dispatch_group_async(group, queue, ^{ /*加载图片3 */ });
+dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        // 合并图片
+});
+```
+
+24.HTTP协议的特点，关于HTTP请求GET和POST的区别?
+
+```
+HTTP协议的特点:
+- HTTP超文本传输协议，是短连接，是客户端主动发送请求，服务器做出响应，服务器响应之后，链接断开。HTTP是一个属于应用层面向对象的协议，HTTP有两类报文：请求报文和响应报文。
+- HTTP请求报文：一个HTTP请求报文由请求行、请求头部、空行和请求数据4部分组成。
+- HTTP响应报文：由三部分组成：状态行、消息报头、响应正文。
+GET和POST的区别:
+- GET请求：参数在地址后拼接，没有请求数据，不安全（因为所有参数都拼接在地址后面），不适合传输大量数据（长度有限制，为1024个字节）。
+GET提交、请求的数据会附在URL之后，即把数据放置在HTTP协议头中。以？分割URL和传输数据，多个参数用&连接。如果数据是英文字母或数字，原样发送，如果是空格，转换为+，如果是中文/其他字符，则直接把字符串用BASE64加密。
+- POST请求：参数在请求数据区放着，相对GET请求更安全，并且数据大小没有限制。把提交的数据放置在HTTP包的包体中.
+- GET提交的数据会在地址栏显示出来，而POST提交，地址栏不会改变。
+
+传输数据的大小：
+- GET提交时，传输数据就会受到URL长度限制，POST由于不是通过URL传值，理论上书不受限。
+- POST的安全性要比GET的安全性高；
+- 通过GET提交数据，用户名和密码将明文出现在URL上，比如登陆界面有可能被浏览器缓存。
+```
+
+25.如何理解MVC设计模式?
+
+```
+MVC是一种架构模式，M表示MOdel，V表示视图View，C表示控制器Controller：
+- Model负责存储、定义、操作数据；
+- View用来展示书给用户，和用户进行操作交互；
+- Controller是Model和View的协调者，Controller把Model中的数据拿过来给View用。Controller可以直接与Model和View进行通信，而View不能和Controller直接通信。View与Controller通信需要利用代理协议的方式，当有数据更新时，Model也要与Controller进行通信，这个时候就要用Notification和KVO，这个方式就像一个广播一样，MOdel发信号，Controller设置监听接受信号，当有数据更新时就发信号给Controller，Model和View不能直接进行通信，这样会违背MVC设计模式。
+ ```
+ 
+ 26.线程与进程的区别和联系?
+ 
+ ```
+ - 一个程序至少要有进城,一个进程至少要有一个线程。
+ 
+- 进程:资源分配的最小独立单元,进程是具有一定独立功能的程序关于某个数据集合上的一次运行活动,进程是系统进行资源分配和调度的一个独立单位。
+- 线程:进程下的一个分支,是进程的实体,是CPU调度和分派的基本单元,它是比进程更小的能独立运行的基本单位,线程自己基本不拥有系统资源,只拥有一点在运行中必不可少的资源(程序计数器、一组寄存器、栈)，但是它可与同属一个进程的其他线程共享进程所拥有的全部资源。
+
+- 进程和线程都是由操作系统所体会的程序运行的基本单元，系统利用该基本单元实现系统对应用的并发性。
+- 进程和线程的主要差别在于它们是不同的操作系统资源管理方式。进程有独立的地址空间，一个进程崩溃后，在保护模式下不会对其它进程产生影响，而线程只是一个进程中的不同执行路径。线程有自己的堆栈和局部变量，但线程之间没有单独的地址空间，一个线程死掉就等于整个进程死掉，所以多进程的程序要比多线程的程序健壮，但在进程切换时，耗费资源较大，效率要差一些。
+- 但对于一些要求同时进行并且又要共享某些变量的并发操作，只能用线程，不能用进程。
+ ```
+ 
+ 27.
+ 
+ ```
+ 
+ ```
