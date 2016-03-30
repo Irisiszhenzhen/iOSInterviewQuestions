@@ -153,6 +153,5 @@ dataSource会用新的数据配置这个UITableViewCell，然后返回给UITable
 当UITableView要求dataSource返回UITableViewCell时，
 先通过一个字符串标识到对象池中查找对应类型的UITableViewCell对象，
 如果有，就重用，如果没有，就传入这个字符串标识来初始化一个UITableViewCell对象。
-
 ```
 
