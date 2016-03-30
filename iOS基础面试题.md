@@ -54,7 +54,9 @@ NSString *obj 对obj的类型没有任何的作用，只是告诉编辑器你要
 6.id 声明的变量有什么特性？
 
 ```
-id声明的变量能指向任何OC对象。参照第4题，id声明的变量，相当于告诉编辑器，此变量的类型暂无具体类型，就是id类型，具体什么类型运行时来决定。
+id声明的变量能指向任何OC对象。
+参照第4题，id声明的变量，相当于告诉编辑器，
+此变量的类型暂无具体类型，就是id类型，具体什么类型运行时来决定。
 ```
 7.Objective-C如何对内存管理的,说说你的看法和解决方法?
 
@@ -194,6 +196,7 @@ for (int i = 0; i < 10; ++i)
 
 ```
 解决办法1：如果i比较大，可以用@autoreleasepool {}解决，放在for循环外，循环结束后，销毁创建的对象，解决占据栈区内存的问题
+
 解决方法2：如果i玩命大，一次循环都会造成自动释放池被填满，自动释放池放在for循环内，每次循环都将上一次创建的对象release
 ```
 25.@private、@protected、@public、@package类型的成员变量的作用域？
@@ -207,8 +210,10 @@ for (int i = 0; i < 10; ++i)
 26.这个写法会出什么问题:`@property (copy) NSMutableArray *array;`?
 
 ```
-@property 的setter方法设置成copy以后，array这个指针指向的是一个不可变数组，那么当使用点语法为给array赋值时，就会发生“unrecognized selector sent to instance”错误，程序就会崩溃。
+@property 的setter方法设置成copy以后，array这个指针指向的是一个不可变数组，
+那么当使用点语法为给array赋值时，就会发生“unrecognized selector sent to instance”错误，程序就会崩溃。
 ```
+
 27.调用对象的release 方法会销毁对象吗？
 
 ```
@@ -286,5 +291,4 @@ for (int i = 0; i < 10; ++i)
 
 - KVO中谁要监听谁注册，然后对响应进行处理，使得观察者与被观察者完全解耦。KVO只检测类中的属性，并且属性名都是通过NSString来查找，编译器不会检错和补全，全部取决于自己。
 ```
-
 
